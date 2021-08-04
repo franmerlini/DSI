@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<persistence xmlns="http://xmlns.jcp.org/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_2.xsd"
+             version="2.2">
+    <persistence-unit name="museoPU">
+
+        <class>entities.AsignacionReserva</class>
+        <class>entities.CreacionSede</class>
+        <class>entities.DetalleExposicion</class>
+        <class>entities.Empleado</class>
+        <class>entities.Entrada</class>
+        <class>entities.Exposicion</class>
+        <class>entities.Obra</class>
+        <class>entities.ReservaVisita</class>
+        <class>entities.Sede</class>
+        <class>entities.Sesion</class>
+        <class>entities.Tarifa</class>
+        <class>entities.TipoEntrada</class>
+        <class>entities.TipoVisita</class>
+        <class>entities.Usuario</class>
+        <properties>
+            <property name="hibernate.connection.url" value="jdbc:sqlserver://localhost\SQLEXPRESS;database=Museo"/>
+            <property name="hibernate.connection.driver_class" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
+            <property name="javax.persistence.jdbc.user" value="admin"/>
+            <property name="hibernate.connection.password" value="admin"/>
+            <property name="hibernate.show_sql" value="false"/>
+            <property name="hibernate.dialect" value="org.hibernate.dialect.SQLServerDialect"/>
+        </properties>
+    </persistence-unit>
+</persistence>
