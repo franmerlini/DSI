@@ -20,7 +20,7 @@ public class PantVentaEntrada extends Pantalla {
     public JButton anteriorButton2;
     public JButton confirmarButton;
     public JSpinner cantidadSpinner;
-    public JPanel MainPanel;
+    public JPanel mainPanel;
     public JLabel cantidadLabel;
     public JLabel montoLabel;
     public JLabel totalLabel;
@@ -43,13 +43,17 @@ public class PantVentaEntrada extends Pantalla {
         cantidadSpinner.setModel(sm);
 
         //Posicionar el tabbedPane
-        MainPanel.setLayout(null);
+        mainPanel.setLayout(null);
         tabbedPane.setLocation(0, -25);
         tabbedPane.setSize(500, 350);
     }
 
     public void habilitarPantalla() {
-        mostrarPantalla(MainPanel);
+        mostrarPantalla(mainPanel);
+    }
+
+    public void deshabilitarPantalla() {
+        super.cerrarPantala();
     }
 
     public void mostrarTarifasVigentes(List<Tarifa> tarifas) {

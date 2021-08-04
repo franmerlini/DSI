@@ -3,8 +3,7 @@ package control;
 import DAO.EntradaDAO;
 import DAO.ReservaVisitaDAO;
 import DAO.UsuarioDAO;
-import boundaries.Impresor;
-import boundaries.PantVentaEntrada;
+import boundaries.*;
 import entities.*;
 
 import javax.swing.*;
@@ -25,7 +24,6 @@ public class GestorVentas implements ActionListener {
     private List<Entrada> entradas;
     private List<ReservaVisita> reservasVisita;
 
-    private Usuario usuarioLogueado;
     private Sesion sesionActiva;
     private Sede sedeActual;
     private LocalDate fechaActual;
@@ -35,7 +33,10 @@ public class GestorVentas implements ActionListener {
     private List<ReservaVisita> reservasVisitaSedeFechaActual;
     private List<Entrada> entradasSedeActual;
 
-    private final PantVentaEntrada pantVentaEntrada = new PantVentaEntrada();
+    private final PantLogin pantLogin;
+    private PantMenuPrincipal pantMenuPrincipal;
+    private PantVentaEntrada pantVentaEntrada;
+    private boolean huboVenta = false;
     private int idTarifaSeleccionada;
     private Tarifa tarifaSeleccionada;
     private boolean seleccionaTarifa = false;
@@ -44,16 +45,21 @@ public class GestorVentas implements ActionListener {
     private int cantidadEntradasSeleccionada;
     private double montoEntrada;
 
-    private final Impresor impresor = new Impresor();
-    //private final PantSala pantSala = new PantSala();
-    //private final PantMuseo pantMuseo = new PantMuseo();
+    private final Impresor impresor;
+    private final PantSala pantSala;
+    private final PantMuseo pantMuseo;
 
     //Metodo constructor
     public GestorVentas() {
         //Obtener los datos de la base de datos
         obtenerDatos();
-        //Iniciar eventos para las pantallas
-        iniciarEventos();
+        //Crear boundaries
+        pantLogin = new PantLogin();
+        pantSala = new PantSala();
+        pantMuseo = new PantMuseo();
+        impresor = new Impresor();
+        //Iniciar eventos para PantLogin
+        iniciarEventosPantLogin();
     }
 
 
@@ -66,12 +72,8 @@ public class GestorVentas implements ActionListener {
         //Tomar la fecha y hora actual del sistema y guardarla en una variable global
         gv.fechaHoraActual = gv.obtenerFechaHoraActual();
 
-        //Logueo ficticio
-        gv.usuarioLogueado = gv.loguear("pedrosanchez");
-        gv.sesionActiva = new Sesion(gv.usuarioLogueado, gv.fechaHoraActual, null);
-
-        //1. opcionRegistrarVentaEntrada
-        gv.opcionRegistrarVentaEntrada();
+        //Habilitar pantalla pantLogin
+        gv.pantLogin.habilitarPantalla();
 
         //3. nuevaVentaEntrada
         gv.nuevaVentaEntrada();
@@ -89,6 +91,12 @@ public class GestorVentas implements ActionListener {
         reservasVisita = reservaVisitaDAO.listar();
     }
 
+    //Actualizar datos traidos de la base de datos
+    public void actualizarDatos() {
+        EntradaDAO entradaDAO = new EntradaDAO();
+        entradas = entradaDAO.listar();
+    }
+
     //Obtener la fecha actual del sistema
     public LocalDate obtenerFechaActual() {
         return LocalDate.now();
@@ -104,33 +112,16 @@ public class GestorVentas implements ActionListener {
         return LocalTime.now();
     }
 
-    //Realizar un logueo ficticio al sistema pasando como parametro un nombre de usuario
-    public Usuario loguear(String nombre) {
-        Usuario aux = null;
-        for (Usuario usuario : usuarios) {
-            if (usuario.getNombre().equals(nombre)) {
-                aux = usuario;
-            }
-        }
-        return aux;
-    }
-
-    //Realizar un clickeo ficticio al boton "Registrar Venta de Entrada"
-    public void opcionRegistrarVentaEntrada() {
-        //2. habilitarPantalla
-        pantVentaEntrada.habilitarPantalla();
-    }
-
     public void nuevaVentaEntrada() {
-        //4. buscarEmpleadoLogueado
+        //Diagrama de secuencia: 4. buscarEmpleadoLogueado
         Empleado empleadoLogueado = buscarEmpleadoLogueado();
-        //5. buscarSedeEmpleado
+        //Diagrama de secuencia: 5. buscarSedeEmpleado
         sedeActual = buscarSedeEmpleado(empleadoLogueado);
-        //6. obtenerFechaActual
+        //Diagrama de secuencia: 6. obtenerFechaActual
         LocalDate fechaActual = obtenerFechaActual();
-        //7. buscarTarifasSedeActual
+        //Diagrama de secuencia: 7. buscarTarifasSedeActual
         tarifasVigentesSedeActual = buscarTarifasSedeActual(sedeActual, fechaActual);
-        //8. mostrarTarifasVigentes
+        //Diagrama de secuencia: 8. mostrarTarifasVigentes
         pantVentaEntrada.mostrarTarifasVigentes(tarifasVigentesSedeActual);
     }
 
@@ -139,27 +130,31 @@ public class GestorVentas implements ActionListener {
     }
 
     public void tomarSeleccionServicioGuia() {
-        //14. calcularDuracionEstimadaVisitaCompleta
+        //Diagrama de secuencia: 14. calcularDuracionEstimadaVisitaCompleta
         calcularDuracionEstimadaVisitaCompleta();
     }
 
     public boolean tomarSeleccionCantidadEntradas() {
         cantidadEntradasSeleccionada = cant;
-        //18. validarCantidadEntradasDisponibles
+        //Diagrama de secuencia: 18. validarCantidadEntradasDisponibles
         boolean hayDisponibilidad = validarCantidadEntradasDisponibles(cantidadEntradasSeleccionada);
-        //22. mostrarDetalleVenta
+        //Diagrama de secuencia: 22. mostrarDetalleVenta
         mostrarDetalleVenta();
 
         return hayDisponibilidad;
     }
 
     public void tomarConfirmacionVenta() {
-        //26. buscarUltimoNumeroEntrada
+        //Diagrama de secuencia: 26. buscarUltimoNumeroEntrada
         int ultimoNumeroEntrada = buscarUltimoNumeroEntrada();
-        //27. crearEntrada
+        //Diagrama de secuencia: 27. crearEntrada
         crearEntrada(ultimoNumeroEntrada);
-        //28. actualizarCantidadVisitantes
+        //Diagrama de secuencia: 28. actualizarCantidadVisitantes
         actualizarCantidadVisitantes();
+    }
+
+    public void finCU() {
+        pantVentaEntrada.deshabilitarPantalla();
     }
 
     //------------------------------------------Metodos que dan solucion al CU------------------------------------------
@@ -187,6 +182,7 @@ public class GestorVentas implements ActionListener {
 
     public boolean validarCantidadEntradasDisponibles(int cantidadEntradasSeleccionada) {
         boolean aux = false;
+        int cantVisitantesDeReservas = obtenerCantidadVisistantesPorReservasVisitaSedeActual();
 
         //19. buscarLimiteVisitantes
         int limiteVisitantes = sedeActual.buscarLimiteVisitantes();
@@ -195,7 +191,7 @@ public class GestorVentas implements ActionListener {
         //21. buscarEntradasSedeFechaActual
         entradasSedeActual = buscarEntradasSedeFechaActual(sedeActual, fechaActual);
 
-        if (limiteVisitantes - (cantidadEntradasSeleccionada + reservasVisitaSedeFechaActual.size() +
+        if (limiteVisitantes - (cantidadEntradasSeleccionada + cantVisitantesDeReservas + cantidadEntradasSeleccionada +
                 entradasSedeActual.size()) > 0) {
             aux = true;
         }
@@ -274,15 +270,29 @@ public class GestorVentas implements ActionListener {
 
     public void actualizarCantidadVisitantes() {
         int limiteVisitantes = sedeActual.getCantMaxVisitantes();
-        int cantidadVisitantes = limiteVisitantes - (reservasVisitaSedeFechaActual.size() +
+
+        int cantVisitantesDeReservas = obtenerCantidadVisistantesPorReservasVisitaSedeActual();
+        int cantidadVisitantes = limiteVisitantes - (cantVisitantesDeReservas +
                 entradasSedeActual.size() + cantidadEntradasSeleccionada);
 
-        //pantSala.mostrarCantidadVisitantes(Integer.toString(limiteVisitantes), Integer.toString(cantidadVisitantes));
-        //pantMuseo.mostrarCantidadVisitantes(Integer.toString(limiteVisitantes), Integer.toString(cantidadVisitantes));
+        pantSala.mostrarCantidadVisitantes(Integer.toString(cantidadVisitantes), Integer.toString(limiteVisitantes));
+        pantMuseo.mostrarCantidadVisitantes(Integer.toString(cantidadVisitantes), Integer.toString(limiteVisitantes));
+        //Habilitar pantallas del museo y de las salas
+        pantMuseo.habilitarPantalla();
+        pantSala.habilitarPantalla();
     }
 
     //----------------------------------------Metodos para la pantalla--------------------------------------------------
-    public void iniciarEventos() {
+    public void iniciarEventosPantLogin() {
+        pantLogin.mostrarContraCheckBox.addActionListener(this);
+        pantLogin.iniciarSesionButton.addActionListener(this);
+    }
+
+    public void iniciarEventosPantMenuPrincipal() {
+        pantMenuPrincipal.registrarVentaButton.addActionListener(this);
+    }
+
+    public void iniciarEventosPantVentaEntrada() {
         pantVentaEntrada.siguienteButton1.addActionListener(this);
         pantVentaEntrada.siguienteButton2.addActionListener(this);
         pantVentaEntrada.anteriorButton1.addActionListener(this);
@@ -291,9 +301,6 @@ public class GestorVentas implements ActionListener {
         pantVentaEntrada.cancelarButton2.addActionListener(this);
         pantVentaEntrada.cancelarButton3.addActionListener(this);
         pantVentaEntrada.confirmarButton.addActionListener(this);
-
-        pantVentaEntrada.incluirServicioGuiaRadioButton.addActionListener(this);
-        pantVentaEntrada.noIncluirServicioGuiaRadioButton.addActionListener(this);
 
         //9. solicitarSeleccionTarifa
         pantVentaEntrada.tarifasTable.addMouseListener(new MouseAdapter() {
@@ -309,24 +316,32 @@ public class GestorVentas implements ActionListener {
         });
 
         //10. solicitarSeleccionServicioGuia
-        pantVentaEntrada.incluirServicioGuiaRadioButton.addChangeListener(e -> {
-            if (pantVentaEntrada.incluirServicioGuiaRadioButton.isSelected()) {
-                //11. seleccionarServicioGuia
-                servicioGuiaSeleccionado = true;
-            }
-            if (seleccionaTarifa) {
-                pantVentaEntrada.siguienteButton1.setEnabled(true);
+        pantVentaEntrada.incluirServicioGuiaRadioButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+                if (pantVentaEntrada.incluirServicioGuiaRadioButton.isSelected()) {
+                    //11. seleccionarServicioGuia
+                    servicioGuiaSeleccionado = true;
+                }
+                if (seleccionaTarifa) {
+                    pantVentaEntrada.siguienteButton1.setEnabled(true);
+                }
             }
         });
 
         //10. solicitarSeleccionServicioGuia
-        pantVentaEntrada.noIncluirServicioGuiaRadioButton.addChangeListener(e -> {
-            if (pantVentaEntrada.noIncluirServicioGuiaRadioButton.isSelected()) {
-                //11. seleccionarServicioGuia
-                servicioGuiaSeleccionado = false;
-            }
-            if (seleccionaTarifa) {
-                pantVentaEntrada.siguienteButton1.setEnabled(true);
+        pantVentaEntrada.noIncluirServicioGuiaRadioButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+                if (pantVentaEntrada.noIncluirServicioGuiaRadioButton.isSelected()) {
+                    //11. seleccionarServicioGuia
+                    servicioGuiaSeleccionado = false;
+                }
+                if (seleccionaTarifa) {
+                    pantVentaEntrada.siguienteButton1.setEnabled(true);
+                }
             }
         });
 
@@ -341,14 +356,73 @@ public class GestorVentas implements ActionListener {
                 pantVentaEntrada.siguienteButton2.setEnabled(false);
             }
         });
-
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         Object evt = e.getSource();
 
-        if (evt.equals(pantVentaEntrada.anteriorButton1)) {
+        //----------------------------------------------PantLogin-------------------------------------------------------
+        if (evt.equals(pantLogin.iniciarSesionButton)) {
+            String nom = pantLogin.usuTextField.getText();
+            String contra = pantLogin.contraPasswordField.getText();
+
+            Usuario usuarioLogueado = validarUsuario(nom, contra);
+
+            if (pantLogin.usuTextField.getText().equals("") ||
+                    pantLogin.contraPasswordField.getText().equals("")) {
+                JOptionPane.showMessageDialog(null, "Ingrese usuario y contraseña",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                if (usuarioLogueado != null) {
+                    //Guardar el objeto de tipo Usuario en usuarioLogueado
+                    //Crear un nuevo objeto del tipo Sesion
+                    sesionActiva = new Sesion(usuarioLogueado, fechaHoraActual, null);
+
+                    //Crear un objeto del tipo PantMenuPrincipal
+                    pantMenuPrincipal = new PantMenuPrincipal();
+                    pantMenuPrincipal.setUsuarioLabel(usuarioLogueado);
+                    //Habilitar pantalla del menu principal
+                    pantMenuPrincipal.habilitarPantalla();
+                    //Iniciar eventos PantMenuPrincipal
+                    iniciarEventosPantMenuPrincipal();
+                } else {
+                    JOptionPane.showMessageDialog(null, "Los datos ingresados son incorrectos",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+
+        } else if (evt.equals(pantLogin.mostrarContraCheckBox)) {
+            if (pantLogin.mostrarContraCheckBox.isSelected()) {
+                pantLogin.contraPasswordField.setEchoChar((char) 0);
+            } else {
+                pantLogin.contraPasswordField.setEchoChar('•');
+            }
+        }
+
+        //-----------------------------------------PantMenuPrincipal----------------------------------------------------
+        //Diagrama de secuencia: 1. opcionRegistrarVentaEntrada
+        else if (evt.equals(pantMenuPrincipal.registrarVentaButton)) {
+            if (huboVenta) {
+                //Actualizar la fecha y hora actual del sistema y guardarla en la variable global
+                fechaHoraActual = obtenerFechaHoraActual();
+                //Actualizar la informacion traida de la base de datos
+                actualizarDatos();
+            } else {
+                huboVenta = true;
+            }
+            //Crear un objeto del tipo PantVentaEntrada
+            pantVentaEntrada = new PantVentaEntrada();
+            //Diagrama de secuencia: 2. habilitarPantalla
+            pantVentaEntrada.habilitarPantalla();
+            //Iniciar eventos PantVentaEntrada
+            iniciarEventosPantVentaEntrada();
+            //Diagrama de secuencia: 3. nuevaVentaEntrada
+            nuevaVentaEntrada();
+        }
+
+        //------------------------------------------PantVentaEntrada----------------------------------------------------
+        else if (evt.equals(pantVentaEntrada.anteriorButton1)) {
             pantVentaEntrada.tabbedPane.setSelectedIndex(0);
         }
         //
@@ -357,9 +431,9 @@ public class GestorVentas implements ActionListener {
         }
         //
         else if (evt.equals(pantVentaEntrada.siguienteButton1)) {
-            //12. tomarSeleccionTarifa
+            //Diagrama de secuencia: 12. tomarSeleccionTarifa
             tomarSeleccionTarifa();
-            //13. tomarSeleccionServicioGuia
+            //Diagrama de secuencia: 13. tomarSeleccionServicioGuia
             tomarSeleccionServicioGuia();
             //Mostrar la cantidad de entradas disponibles
             pantVentaEntrada.mostrarEntradasDisponibles(Integer.toString(cantidadEntradasDisponibles()));
@@ -367,7 +441,7 @@ public class GestorVentas implements ActionListener {
         }
         //
         else if (evt.equals(pantVentaEntrada.siguienteButton2)) {
-            //17. tomarSeleccionCantidadEntradas
+            //Diagrama de secuencia: 17. tomarSeleccionCantidadEntradas
             boolean hayDisponibilidad = tomarSeleccionCantidadEntradas();
             if (hayDisponibilidad) {
                 pantVentaEntrada.tabbedPane.setSelectedIndex(2);
@@ -380,17 +454,32 @@ public class GestorVentas implements ActionListener {
         else if (evt.equals(pantVentaEntrada.cancelarButton1) ||
                 evt.equals(pantVentaEntrada.cancelarButton2) ||
                 evt.equals(pantVentaEntrada.cancelarButton3)) {
-            System.exit(0);
+            finCU();
         }
-        //23. solicitarConfirmacionVenta
-        //24. confirmarVenta
+        //Diagrama de secuencia: 23. solicitarConfirmacionVenta
+        //Diagrama de secuencia: 24. confirmarVenta
         else if (evt.equals(pantVentaEntrada.confirmarButton)) {
             //25. tomarConfirmacionVenta
             tomarConfirmacionVenta();
             JOptionPane.showMessageDialog(null, "La operacion ha sido realizada exitosamente",
                     "Exito", JOptionPane.INFORMATION_MESSAGE);
-            System.exit(0);
+            //Diagrama de secuencia: 29. finCU
+            finCU();
         }
+    }
+    //--------------------------------------------Metodos auxiliares----------------------------------------------------
+
+    //Validar si existe un usuario pasando como parametros un nombre y una contrasena
+    private Usuario validarUsuario(String nom, String contra) {
+        Usuario aux = null;
+
+        for (Usuario usuario : usuarios) {
+            if (usuario.getNombre().equals(nom) && usuario.getContraseña().equals(contra)) {
+                aux = usuario;
+                break;
+            }
+        }
+        return aux;
     }
 
     //Buscar una tarifa pasando como parametro un id
@@ -406,9 +495,19 @@ public class GestorVentas implements ActionListener {
 
     public int cantidadEntradasDisponibles() {
         int limiteVisitantes = sedeActual.buscarLimiteVisitantes();
-        reservasVisitaSedeFechaActual = buscarReservasVisitaSedeFechaActual(sedeActual, fechaActual);
         entradasSedeActual = buscarEntradasSedeFechaActual(sedeActual, fechaActual);
 
-        return limiteVisitantes - (reservasVisitaSedeFechaActual.size() + entradasSedeActual.size());
+        int cantVisitantesDeReservas = obtenerCantidadVisistantesPorReservasVisitaSedeActual();
+
+        return limiteVisitantes - (cantVisitantesDeReservas + entradasSedeActual.size());
+    }
+
+    private int obtenerCantidadVisistantesPorReservasVisitaSedeActual() {
+        reservasVisitaSedeFechaActual = buscarReservasVisitaSedeFechaActual(sedeActual, fechaActual);
+        int aux = 0;
+        for (ReservaVisita reservaVisita : reservasVisitaSedeFechaActual) {
+            aux += reservaVisita.getCantidadAlumnosConfirmada();
+        }
+        return aux;
     }
 }
