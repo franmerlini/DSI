@@ -64,10 +64,17 @@ public class PantVentaEntrada extends Pantalla {
                     tarifa.getId(),
                     tarifa.getTipoEntrada().getNombre(),
                     tarifa.getTipoVisita().getNombre(),
-                    tarifa.getMonto(),
-                    tarifa.getMontoAdicionalGuia()});
+                    "$" + tarifa.getMonto(),
+                    "$" + tarifa.getMontoAdicionalGuia()});
         }
         tarifasTable.setModel(model);
+
+        //Setear el ancho de columnas de la tabla de tarifas
+        tarifasTable.getColumnModel().getColumn(0).setMaxWidth(20);
+        tarifasTable.getColumnModel().getColumn(1).setMaxWidth(100);
+        tarifasTable.getColumnModel().getColumn(2).setMaxWidth(100);
+        tarifasTable.getColumnModel().getColumn(3).setMaxWidth(70);
+        tarifasTable.getColumnModel().getColumn(4).setMaxWidth(150);
     }
 
     public void mostrarEntradasDisponibles(String cantidadDispobible) {

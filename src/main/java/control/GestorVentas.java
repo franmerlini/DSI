@@ -130,15 +130,15 @@ public class GestorVentas implements ActionListener {
     }
 
     public void tomarSeleccionServicioGuia() {
-        //Diagrama de secuencia: 14. calcularDuracionEstimadaVisitaCompleta
+        //Diagrama de secuencia: 15. calcularDuracionEstimadaVisitaCompleta
         calcularDuracionEstimadaVisitaCompleta();
     }
 
     public boolean tomarSeleccionCantidadEntradas() {
         cantidadEntradasSeleccionada = cant;
-        //Diagrama de secuencia: 18. validarCantidadEntradasDisponibles
+        //Diagrama de secuencia: 19. validarCantidadEntradasDisponibles
         boolean hayDisponibilidad = validarCantidadEntradasDisponibles(cantidadEntradasSeleccionada);
-        //Diagrama de secuencia: 22. mostrarDetalleVenta
+        //Diagrama de secuencia: 23. mostrarDetalleVenta
         mostrarDetalleVenta();
 
         return hayDisponibilidad;
@@ -184,11 +184,11 @@ public class GestorVentas implements ActionListener {
         boolean aux = false;
         int cantVisitantesDeReservas = obtenerCantidadVisistantesPorReservasVisitaSedeActual();
 
-        //19. buscarLimiteVisitantes
+        //Diagrama de secuencia: 20. buscarLimiteVisitantes
         int limiteVisitantes = sedeActual.buscarLimiteVisitantes();
-        //20. buscarReservasVisitaSedeFechaActual
+        //Diagrama de secuencia: 21. buscarReservasVisitaSedeFechaActual
         reservasVisitaSedeFechaActual = buscarReservasVisitaSedeFechaActual(sedeActual, fechaActual);
-        //21. buscarEntradasSedeFechaActual
+        //Diagrama de secuencia: 22. buscarEntradasSedeFechaActual
         entradasSedeActual = buscarEntradasSedeFechaActual(sedeActual, fechaActual);
 
         if (limiteVisitantes - (cantidadEntradasSeleccionada + cantVisitantesDeReservas + cantidadEntradasSeleccionada +
@@ -272,8 +272,7 @@ public class GestorVentas implements ActionListener {
         int limiteVisitantes = sedeActual.getCantMaxVisitantes();
 
         int cantVisitantesDeReservas = obtenerCantidadVisistantesPorReservasVisitaSedeActual();
-        int cantidadVisitantes = limiteVisitantes - (cantVisitantesDeReservas +
-                entradasSedeActual.size() + cantidadEntradasSeleccionada);
+        int cantidadVisitantes = cantVisitantesDeReservas + entradasSedeActual.size() + cantidadEntradasSeleccionada;
 
         pantSala.mostrarCantidadVisitantes(Integer.toString(cantidadVisitantes), Integer.toString(limiteVisitantes));
         pantMuseo.mostrarCantidadVisitantes(Integer.toString(cantidadVisitantes), Integer.toString(limiteVisitantes));
@@ -302,26 +301,26 @@ public class GestorVentas implements ActionListener {
         pantVentaEntrada.cancelarButton3.addActionListener(this);
         pantVentaEntrada.confirmarButton.addActionListener(this);
 
-        //9. solicitarSeleccionTarifa
+        //Diagrama de secuencia: 9. solicitarSeleccionTarifa
         pantVentaEntrada.tarifasTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
                 DefaultTableModel dtm = (DefaultTableModel) pantVentaEntrada.tarifasTable.getModel();
                 int indiceFilaSeleccionada = pantVentaEntrada.tarifasTable.getSelectedRow();
-                //10. seleccionarTarifa
+                //Diagrama de secuencia: 11. seleccionarTarifa
                 idTarifaSeleccionada = Integer.parseInt(dtm.getValueAt(indiceFilaSeleccionada, 0).toString());
                 seleccionaTarifa = true;
             }
         });
 
-        //10. solicitarSeleccionServicioGuia
+        //Diagrama de secuencia: 10. solicitarSeleccionServicioGuia
         pantVentaEntrada.incluirServicioGuiaRadioButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
                 if (pantVentaEntrada.incluirServicioGuiaRadioButton.isSelected()) {
-                    //11. seleccionarServicioGuia
+                    //Diagrama de secuencia: 12. seleccionarServicioGuia
                     servicioGuiaSeleccionado = true;
                 }
                 if (seleccionaTarifa) {
@@ -330,13 +329,13 @@ public class GestorVentas implements ActionListener {
             }
         });
 
-        //10. solicitarSeleccionServicioGuia
+        //Diagrama de secuencia: 10. solicitarSeleccionServicioGuia
         pantVentaEntrada.noIncluirServicioGuiaRadioButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
                 if (pantVentaEntrada.noIncluirServicioGuiaRadioButton.isSelected()) {
-                    //11. seleccionarServicioGuia
+                    //Diagrama de secuencia: 11. seleccionarServicioGuia
                     servicioGuiaSeleccionado = false;
                 }
                 if (seleccionaTarifa) {
@@ -345,9 +344,9 @@ public class GestorVentas implements ActionListener {
             }
         });
 
-        //15. solicitarSeleccionCantidadEntradas
+        //Diagrama de secuencia: 16. solicitarSeleccionCantidadEntradas
         pantVentaEntrada.cantidadSpinner.addChangeListener(e -> {
-            //16. seleccionarCantidadEntradas
+            //Diagrama de secuencia: 17. seleccionarCantidadEntradas
             cant = Integer.parseInt(pantVentaEntrada.cantidadSpinner.getValue().toString());
             if (cant != 0) {
                 pantVentaEntrada.siguienteButton2.setEnabled(true);
@@ -431,9 +430,9 @@ public class GestorVentas implements ActionListener {
         }
         //
         else if (evt.equals(pantVentaEntrada.siguienteButton1)) {
-            //Diagrama de secuencia: 12. tomarSeleccionTarifa
+            //Diagrama de secuencia: 13. tomarSeleccionTarifa
             tomarSeleccionTarifa();
-            //Diagrama de secuencia: 13. tomarSeleccionServicioGuia
+            //Diagrama de secuencia: 14. tomarSeleccionServicioGuia
             tomarSeleccionServicioGuia();
             //Mostrar la cantidad de entradas disponibles
             pantVentaEntrada.mostrarEntradasDisponibles(Integer.toString(cantidadEntradasDisponibles()));
@@ -441,7 +440,7 @@ public class GestorVentas implements ActionListener {
         }
         //
         else if (evt.equals(pantVentaEntrada.siguienteButton2)) {
-            //Diagrama de secuencia: 17. tomarSeleccionCantidadEntradas
+            //Diagrama de secuencia: 18. tomarSeleccionCantidadEntradas
             boolean hayDisponibilidad = tomarSeleccionCantidadEntradas();
             if (hayDisponibilidad) {
                 pantVentaEntrada.tabbedPane.setSelectedIndex(2);
@@ -456,8 +455,8 @@ public class GestorVentas implements ActionListener {
                 evt.equals(pantVentaEntrada.cancelarButton3)) {
             finCU();
         }
-        //Diagrama de secuencia: 23. solicitarConfirmacionVenta
-        //Diagrama de secuencia: 24. confirmarVenta
+        //Diagrama de secuencia: 24. solicitarConfirmacionVenta
+        //Diagrama de secuencia: 25. confirmarVenta
         else if (evt.equals(pantVentaEntrada.confirmarButton)) {
             //25. tomarConfirmacionVenta
             tomarConfirmacionVenta();
