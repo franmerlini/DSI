@@ -23,7 +23,7 @@
             <property name="hibernate.connection.url" value="jdbc:sqlserver://localhost\SQLEXPRESS;database=Museo"/>
             <property name="hibernate.connection.driver_class" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
             <property name="javax.persistence.jdbc.user" value="admin"/>
-            <property name="hibernate.connection.password" value="admin"/>
+            <property name="hibernate.connection.password" value="123"/>
             <property name="hibernate.show_sql" value="false"/>
             <property name="hibernate.dialect" value="org.hibernate.dialect.SQLServerDialect"/>
         </properties>
